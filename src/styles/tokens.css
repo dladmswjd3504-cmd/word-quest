@@ -1,0 +1,47 @@
+/* 디자인 토큰 — 색·글꼴·간격은 여기서만 정의한다. (1차는 라이트 고정, 다크모드는 나중에 여기서 확장) */
+:root {
+  /* 파스텔 팔레트 */
+  --color-sky: #8fd3f4;
+  --color-sky-deep: #4aa8d8;
+  --color-mint: #a8e6cf;
+  --color-mint-deep: #3fb68b;
+  --color-yellow: #ffd54f;
+  --color-coral: #ff8a80;
+  --color-coral-soft: #ffb3a7;
+
+  --color-bg: #fffaf0;
+  --color-surface: #ffffff;
+  --color-text: #3a3a5a;
+  --color-text-muted: #7a7a96;
+  --color-border: #e8e2d4;
+
+  --color-correct: var(--color-mint-deep);
+  --color-wrong: #e0645a;
+
+  /* 글꼴: 외부 폰트 로딩 금지. 둥근 계열 시스템 폰트 우선 */
+  --font-base: ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Apple SD Gothic Neo',
+    'Malgun Gothic', 'Noto Sans KR', 'Segoe UI', sans-serif;
+  --font-size-base: 17px;
+  --font-size-word: 2.5rem;
+
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --tap-min: 44px;
+  --shadow-card: 0 4px 0 rgba(58, 58, 90, 0.12);
+}
+
+/* 설정 > 글자 크기 "크게" */
+:root[data-font-size='large'] {
+  --font-size-base: 20px;
+  --font-size-word: 3rem;
+}
