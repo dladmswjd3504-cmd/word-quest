@@ -154,3 +154,19 @@
   font-size: 0.92rem;
   line-height: 1.6;
 }
+
+/* 첫 화면 고양이 (번들에 포함된 그림, 외부 이미지 아님) */
+.welcomeCat {
+  width: min(240px, 70vw);
+  height: auto;
+  animation: welcomeBounce 2.2s ease-in-out infinite;
+}
+@keyframes welcomeBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}

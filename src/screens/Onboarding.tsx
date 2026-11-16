@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import welcomeCat from '../assets/welcome-cat.png';
 import { Mascot } from '../components/Mascot.tsx';
 import { Button, Notice, SpeechBubble } from '../components/ui.tsx';
 import { gameConfig } from '../config/gameConfig.ts';
@@ -49,7 +50,7 @@ export function Onboarding({ onDone }: { onDone: (save: SaveData) => void }) {
       {step === 'welcome' && (
         <>
           <div className={`${s.stack} ${s.center}`} style={{ flex: 1, justifyContent: 'center' }}>
-            <Mascot size={170} mood="cheer" bounce />
+            <img src={welcomeCat} alt="반갑게 웃는 고양이" className={s.welcomeCat} width={240} height={200} />
             <h1 className={s.title}>Welcome to Word Quest!</h1>
             <SpeechBubble>
               안녕! 나는 <b>{gameConfig.mascotName}</b>야.
