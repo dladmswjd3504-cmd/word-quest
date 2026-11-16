@@ -76,7 +76,12 @@ export function Home({ onOpenMission, onOpenSettings }: { onOpenMission: () => v
         ) : status.kind === 'clearedToday' ? (
           <>
             <div className={h.questTitle}>오늘은 클리어 완료! 🎉</div>
-            <p className={s.muted}>내일 Day {status.nextDay}에서 만나! 복습 게임은 곧 열려요.</p>
+            <p className={s.muted}>
+              {status.nextDay > lastDay
+                ? `준비된 Day ${lastDay}까지 모두 끝냈어! 새 단어가 곧 도착해요.`
+                : `내일 Day ${status.nextDay}에서 만나!`}{' '}
+              복습 게임은 곧 열려요.
+            </p>
           </>
         ) : (
           <>

@@ -120,6 +120,8 @@ function normalizeMission(value: unknown): MissionState | null {
     stepIndex: clampInt(value.stepIndex, 0, 1000, 0),
     questions: Array.isArray(value.questions) ? value.questions : [],
     earnedXp: clampInt(value.earnedXp, 0, 100_000, 0),
+    // M5에서 추가된 값: 예전 저장 데이터에는 없으므로 0으로 채운다
+    correctCount: clampInt(value.correctCount, 0, 1000, 0),
   };
 }
 

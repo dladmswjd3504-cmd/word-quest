@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Button, Card, SpeechBubble } from '../../components/ui.tsx';
+import { Button, SpeechBubble } from '../../components/ui.tsx';
 import { Mascot } from '../../components/Mascot.tsx';
 import { speak, useTtsStatus } from '../../lib/tts.ts';
 import { advanceStep, answerListen } from '../../logic/mission.ts';
-import { silentHint, type ChoiceQuestion } from '../../logic/questions.ts';
+import type { ChoiceQuestion } from '../../logic/questions.ts';
 import { usePhrase } from '../../state/usePhrase.ts';
 import type { MissionState, SaveData, Settings, Word } from '../../types.ts';
 import { AnswerFeedback } from './AnswerFeedback.tsx';
+import { ChoiceQuestionView } from './ChoiceQuestionView.tsx';
 import { SilentToggle } from './SilentToggle.tsx';
 import m from './mission.module.css';
 import s from '../screens.module.css';
@@ -18,10 +19,6 @@ interface Feedback {
   chosen: string;
 }
 
-const MODE_LABEL = {
-  'listen-ko': '알맞은 뜻을 골라 줘',
-  'listen-en': '알맞은 철자를 골라 줘',
-} as const;
 
 /**
  * [2] 듣고 맞추기 (PRD 4.2)
@@ -142,47 +139,12 @@ export function ListenStep({
     setFeedback({ correct, phrase: correct ? phrase.correct() : phrase.wrong(), word, chosen: q.choices[choiceIndex] });
   };
 
-  const hint = silentHint(word, q.mode);
-  const choicesAreEnglish = q.mode === 'listen-en';
-
   return (
     <>
       <div className={m.counter}>
         {silent ? '🔇' : '🎧'} 듣고 맞추기 {index + 1} / {total}
       </div>
-      <Card className={m.prompt}>
-        <span className={m.stageTag}>{MODE_LABEL[q.mode]}</span>
-        {silent ? (
-          <>
-            <span className={q.mode === 'listen-ko' ? m.word : m.promptMeaning} lang={q.mode === 'listen-ko' ? 'en' : 'ko'}>
-              {hint.main}
-            </span>
-            {hint.sub && (
-              <span className={m.hint} lang="en">
-                {hint.sub}
-              </span>
-            )}
-          </>
-        ) : (
-          <button type="button" className={m.bigSpeak} onClick={() => playQuestion(index)} aria-label="발음 다시 듣기">
-            <span aria-hidden>🔊</span>
-            <span className={m.bigSpeakLabel}>다시 듣기</span>
-          </button>
-        )}
-      </Card>
-      <div className={m.choices}>
-        {q.choices.map((text, i) => (
-          <button
-            key={i}
-            type="button"
-            className={`${m.choice} ${choicesAreEnglish ? m.choiceEn : ''}`}
-            onClick={() => choose(i)}
-            lang={choicesAreEnglish ? 'en' : 'ko'}
-          >
-            {text}
-          </button>
-        ))}
-      </div>
+      <ChoiceQuestionView question={q} word={word} settings={settings} silent={silent} onChoose={choose} />
       <SilentToggle silent={settings.silentMode} disabled={tts === 'unavailable'} onChange={onSetSilent} />
     </>
   );

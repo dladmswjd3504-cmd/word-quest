@@ -89,6 +89,8 @@ export interface MissionState {
   /** 미리 생성해 둔 문제 (재접속 시 같은 문제 유지). 형태는 M2에서 정의 */
   questions: unknown[];
   earnedXp: number;
+  /** 지금 단계에서 맞힌 문제 수 (보스전 승패 판정용, 다시 열어도 유지) */
+  correctCount: number;
 }
 
 export const SAVE_VERSION = 1;

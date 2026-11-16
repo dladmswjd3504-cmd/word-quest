@@ -1,16 +1,19 @@
 import { gameConfig } from '../config/gameConfig.ts';
-import type { Course, MissionState, MissionStep, SaveData, Word } from '../types.ts';
-import { bossKindOf } from './boss.ts';
-import { recordAnswer, recordMatchResult } from './progress.ts';
+import type { Course, CourseProgress, MissionState, MissionStep, SaveData, Word } from '../types.ts';
+import { bossKindOf, buildBossRound, isBossPassed } from './boss.ts';
+import { isSpellingCorrect } from './mastery.ts';
+import { completeMission, recordAnswer, recordMatchResult, recordSpelling, type ClearResult } from './progress.ts';
 import {
   buildListenRound,
   buildMatchRound,
   buildSpellingQuestion,
   type ChoiceQuestion,
   type MatchCard,
+  type Question,
   type SpellingQuestion,
 } from './questions.ts';
 import { shuffle, type Rng } from './random.ts';
+import { buildReviewRound } from './review.ts';
 import { matchSpeedBonus } from './xp.ts';
 
 /** 하루 미션 단계 순서. 보스 Day는 복습 퀴즈 대신 보스전 (PRD 3.2) */
@@ -41,7 +44,7 @@ export function startMission(
   return {
     ...save,
     lastPlayedDate: today,
-    currentMission: { course, day, date: today, step: 'learn', stepIndex: 0, questions: spelling, earnedXp: 0 },
+    currentMission: { course, day, date: today, step: 'learn', stepIndex: 0, questions: spelling, earnedXp: 0, correctCount: 0 },
   };
 }
 
@@ -50,27 +53,132 @@ export function advanceStep(mission: MissionState): MissionState {
   const steps = missionSteps(mission.day);
   const i = steps.indexOf(mission.step);
   const next = steps[Math.min(i + 1, steps.length - 1)];
-  return { ...mission, step: next, stepIndex: 0, questions: [] };
+  return { ...mission, step: next, stepIndex: 0, correctCount: 0, questions: [] };
 }
 
 /**
- * 듣고 맞추기·짝맞추기 단계에 들어왔는데 문제가 아직 없으면 만들어 넣는다.
+ * 듣기·짝맞추기·복습·보스 단계에 들어왔는데 문제가 아직 없으면 만들어 넣는다.
  * (advanceStep은 문제를 비우므로, 단계에 들어간 직후 한 번 호출 → 저장 → 다시 열어도 같은 문제)
- * pool: 오답 보기를 고를 같은 과정의 단어 목록
+ * pool: 이 과정의 단어 전체 (오답 보기·복습·보스 출제 범위)
+ * progress: 이 과정의 학습 기록 (약점·숙련도로 복습·보스 출제)
  */
 export function prepareStep(
   mission: MissionState,
-  params: { dayWords: readonly Word[]; pool: readonly Word[]; rng: Rng },
+  params: { dayWords: readonly Word[]; pool: readonly Word[]; progress: CourseProgress; rng: Rng },
 ): MissionState {
   if (!needsQuestions(mission)) return mission;
-  const { dayWords, pool, rng } = params;
-  const questions =
-    mission.step === 'listen' ? buildListenRound(dayWords, pool, rng) : buildMatchRound(dayWords, rng);
-  return { ...mission, stepIndex: 0, questions };
+  return { ...mission, stepIndex: 0, correctCount: 0, questions: buildStepQuestions(mission, params) };
 }
 
+function buildStepQuestions(
+  mission: MissionState,
+  params: { dayWords: readonly Word[]; pool: readonly Word[]; progress: CourseProgress; rng: Rng },
+): unknown[] {
+  const { dayWords, pool, progress, rng } = params;
+  const { day } = mission;
+  switch (mission.step) {
+    case 'listen':
+      return buildListenRound(dayWords, pool, rng);
+    case 'match':
+      return buildMatchRound(dayWords, rng);
+    case 'review':
+      return buildReviewRound({ day, words: pool, progress, rng });
+    case 'boss':
+      return buildBossRound({ day, kind: bossKindOf(day) ?? 'mid', words: pool, progress, rng });
+    default:
+      return [];
+  }
+}
+
+const STEPS_WITH_QUESTIONS: readonly MissionStep[] = ['listen', 'match', 'review', 'boss'];
+
 export function needsQuestions(mission: MissionState): boolean {
-  return (mission.step === 'listen' || mission.step === 'match') && mission.questions.length === 0;
+  return STEPS_WITH_QUESTIONS.includes(mission.step) && mission.questions.length === 0;
+}
+
+// ── 복습 퀴즈·보스전 (PRD 4.3, 4.4) ──
+
+/** 복습·보스 문제 정답 판정. 보기 문제는 고른 번호, 철자 문제는 입력한 글자 */
+export function isQuizAnswerCorrect(question: Question, answer: number | string, word: Word): boolean {
+  if (question.kind === 'spelling') return typeof answer === 'string' && isSpellingCorrect(answer, word.en);
+  return answer === question.answerIndex;
+}
+
+/**
+ * 복습 퀴즈·보스전 한 문제에 답했다.
+ * 숙련도·약점 반영(철자 문제는 스펠링 단계도) + 맞힌 수 + 다음 문제로. 복습 퀴즈 정답은 경험치(+3)
+ */
+export function answerQuiz(
+  save: SaveData,
+  params: { question: Question; answer: number | string; word: Word; today: string },
+): { save: SaveData; correct: boolean } {
+  const mission = save.currentMission;
+  if (!mission) return { save, correct: false };
+  const { question, answer, word, today } = params;
+  const correct = isQuizAnswerCorrect(question, answer, word);
+  const recorded =
+    question.kind === 'spelling'
+      ? recordSpelling(save, mission.course, word.id, correct, today)
+      : recordAnswer(save, mission.course, word.id, correct, today);
+  const xp = correct && mission.step === 'review' ? gameConfig.xp.reviewCorrect : 0;
+  return {
+    correct,
+    save: {
+      ...recorded,
+      currentMission: {
+        ...mission,
+        stepIndex: mission.stepIndex + 1,
+        correctCount: mission.correctCount + (correct ? 1 : 0),
+        earnedXp: mission.earnedXp + xp,
+      },
+    },
+  };
+}
+
+export interface BossResult {
+  correct: number;
+  total: number;
+  /** 이기려면 맞혀야 하는 문제 수 */
+  needed: number;
+  passed: boolean;
+}
+
+export function bossResult(mission: MissionState): BossResult {
+  const total = mission.questions.length;
+  const correct = mission.correctCount;
+  return {
+    correct,
+    total,
+    needed: Math.ceil(total * gameConfig.boss.passRate - 1e-9),
+    passed: isBossPassed(correct, total),
+  };
+}
+
+/** 보스전에 져서 "다시 도전!": 벌점 없이 새 문제로 처음부터 (PRD 4.4) */
+export function retryBoss(
+  mission: MissionState,
+  params: { pool: readonly Word[]; progress: CourseProgress; rng: Rng },
+): MissionState {
+  if (mission.step !== 'boss') return mission;
+  return prepareStep({ ...mission, questions: [] }, { ...params, dayWords: [] });
+}
+
+export type FinishMissionResult =
+  | { ok: true; save: SaveData; result: ClearResult }
+  | { ok: false; save: SaveData; reason: 'alreadyCompleted' | 'alreadyClearedToday' | 'notNextDay' | 'bossNotWon' | 'noMission' };
+
+/**
+ * 마지막 단계(복습 퀴즈 또는 보스전)를 끝내고 하루 미션을 클리어한다.
+ * 보스 Day는 보스전 승리가 필요하다. 이미 클리어했거나 진도가 맞지 않으면 진행 중 미션만 정리한다.
+ */
+export function finishMission(save: SaveData, today: string): FinishMissionResult {
+  const mission = save.currentMission;
+  if (!mission) return { ok: false, save, reason: 'noMission' };
+  const bossWon = mission.step === 'boss' && bossResult(mission).passed;
+  const r = completeMission(save, { course: mission.course, day: mission.day, missionXp: mission.earnedXp, bossWon }, today);
+  if (r.ok) return r;
+  if (r.reason === 'bossNotWon') return { ok: false, save, reason: r.reason };
+  return { ok: false, save: { ...save, currentMission: null }, reason: r.reason };
 }
 
 /**

@@ -10,13 +10,14 @@ import { fakeWords, newSave } from './helpers.ts';
 const T = '2026-11-16';
 const words = fakeWords(3);
 const day1 = words.filter((w) => w.day === 1);
+const save0 = newSave();
 
 /** Day 1 미션을 시작해서 학습을 끝내고 원하는 단계까지 넘어간 저장 데이터 */
 function saveAt(step: 'listen' | 'match'): SaveData {
   const save = startMission(newSave(), { course: 'middle', day: 1, dayWords: day1, today: T, rng: createRng(1) });
   let mission = advanceStep(save.currentMission!);
   if (step === 'match') mission = advanceStep(mission);
-  return { ...save, currentMission: prepareStep(mission, { dayWords: day1, pool: words, rng: createRng(2) }) };
+  return { ...save, currentMission: prepareStep(mission, { dayWords: day1, pool: words, progress: save0.progress.middle, rng: createRng(2) }) };
 }
 
 describe('단계 문제 준비', () => {
@@ -38,14 +39,14 @@ describe('단계 문제 준비', () => {
     const save = saveAt('listen');
     const reloaded = migrateSave(JSON.parse(JSON.stringify(save)))!;
     expect(needsQuestions(reloaded.currentMission!)).toBe(false);
-    const again = prepareStep(reloaded.currentMission!, { dayWords: day1, pool: words, rng: createRng(99) });
+    const again = prepareStep(reloaded.currentMission!, { dayWords: day1, pool: words, progress: save0.progress.middle, rng: createRng(99) });
     expect(again.questions).toEqual(save.currentMission!.questions);
   });
 
   it('학습·복습 단계에서는 아무것도 만들지 않는다', () => {
     const save = startMission(newSave(), { course: 'middle', day: 1, dayWords: day1, today: T, rng: createRng(1) });
     const learn = { ...save.currentMission!, questions: [] };
-    expect(prepareStep(learn, { dayWords: day1, pool: words, rng: createRng(1) })).toBe(learn);
+    expect(prepareStep(learn, { dayWords: day1, pool: words, progress: save0.progress.middle, rng: createRng(1) })).toBe(learn);
   });
 });
 

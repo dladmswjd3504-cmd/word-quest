@@ -1,19 +1,31 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, ProgressBar, SpeechBubble } from '../../components/ui.tsx';
 import { Mascot } from '../../components/Mascot.tsx';
 import { getWordsOfDay } from '../../data/words.ts';
 import { localDateString } from '../../logic/date.ts';
-import { getActiveMission, needsQuestions, prepareStep, STEP_LABELS, stepPosition } from '../../logic/mission.ts';
+import {
+  finishMission,
+  getActiveMission,
+  needsQuestions,
+  prepareStep,
+  retryBoss,
+  STEP_LABELS,
+  stepPosition,
+  type FinishMissionResult,
+} from '../../logic/mission.ts';
+import type { ClearResult } from '../../logic/progress.ts';
 import { useSave } from '../../state/GameContext.tsx';
 import { useWords } from '../../state/useWords.ts';
 import type { MissionState, SaveData } from '../../types.ts';
+import { ClearScreen } from './ClearScreen.tsx';
 import { LearnStep } from './LearnStep.tsx';
 import { ListenStep } from './ListenStep.tsx';
 import { MatchStep } from './MatchStep.tsx';
+import { QuizStep } from './QuizStep.tsx';
 import m from './mission.module.css';
 import s from '../screens.module.css';
 
-/** 하루 미션 화면. 단계(학습 → 듣기 → 짝맞추기 → 복습/보스)를 이어서 보여 준다. 매 단계 진행은 즉시 저장된다. */
+/** 하루 미션 화면. 단계(학습 → 듣기 → 짝맞추기 → 복습/보스 → 클리어)를 이어서 보여 준다. 매 단계 진행은 즉시 저장된다. */
 export function MissionScreen({ onExit }: { onExit: () => void }) {
   const { save, update } = useSave();
   const course = save.settings.course;
@@ -21,23 +33,31 @@ export function MissionScreen({ onExit }: { onExit: () => void }) {
   const today = localDateString();
   const mission = getActiveMission(save, course, today);
   const waitingForQuestions = !!mission && needsQuestions(mission);
+  const [cleared, setCleared] = useState<{ day: number; result: ClearResult } | null>(null);
+  const [finishProblem, setFinishProblem] = useState(false);
 
-  // 듣기·짝맞추기 단계에 처음 들어오면 문제를 만들어 저장한다 (다시 열어도 같은 문제)
+  // 듣기·짝맞추기·복습·보스 단계에 처음 들어오면 문제를 만들어 저장한다 (다시 열어도 같은 문제)
   useEffect(() => {
     if (!waitingForQuestions || !words) return;
     update((sv) => {
       const mi = sv.currentMission;
       if (!mi || !needsQuestions(mi)) return sv;
       const dayWords = getWordsOfDay(words, mi.day);
-      return { ...sv, currentMission: prepareStep(mi, { dayWords, pool: words, rng: Math.random }) };
+      const progress = sv.progress[mi.course];
+      return { ...sv, currentMission: prepareStep(mi, { dayWords, pool: words, progress, rng: Math.random }) };
     });
   }, [waitingForQuestions, words, update]);
+
+  // 클리어 화면은 미션이 끝난(저장에서 지워진) 뒤에도 보여 준다
+  if (cleared) return <ClearScreen day={cleared.day} result={cleared.result} onHome={onExit} />;
 
   if (!mission) {
     return (
       <main className={`${s.page} ${s.full} ${s.center}`}>
         <Mascot size={110} mood="think" />
-        <SpeechBubble>진행 중인 모험이 없어요. 홈에서 시작해 줘!</SpeechBubble>
+        <SpeechBubble>
+          {finishProblem ? '이 모험은 이미 클리어했어요. 홈에서 다음 모험을 확인해 줘!' : '진행 중인 모험이 없어요. 홈에서 시작해 줘!'}
+        </SpeechBubble>
         <Button onClick={onExit}>홈으로</Button>
       </main>
     );
@@ -50,6 +70,23 @@ export function MissionScreen({ onExit }: { onExit: () => void }) {
   const updateMission = (fn: (save: SaveData, mission: MissionState) => SaveData) =>
     update((sv) => (sv.currentMission ? fn(sv, sv.currentMission) : sv));
   const setSilent = (silentMode: boolean) => update((sv) => ({ ...sv, settings: { ...sv.settings, silentMode } }));
+
+  const finish = () => {
+    const box: { r?: FinishMissionResult } = {};
+    update((sv) => {
+      box.r = finishMission(sv, today);
+      return box.r.save;
+    });
+    const r = box.r;
+    if (r?.ok) setCleared({ day: mission.day, result: r.result });
+    else if (r && r.reason !== 'bossNotWon') setFinishProblem(true);
+  };
+  const retry = () =>
+    updateMission((sv, mi) => ({
+      ...sv,
+      currentMission: retryBoss(mi, { pool: words, progress: sv.progress[mi.course], rng: Math.random }),
+    }));
+
   const stepKey = `${mission.day}-${mission.date}-${mission.step}`;
   const common = { mission, dayWords, settings: save.settings, today, updateMission };
 
@@ -79,25 +116,25 @@ export function MissionScreen({ onExit }: { onExit: () => void }) {
           <ListenStep key={stepKey} {...common} onSetSilent={setSilent} />
         ) : mission.step === 'match' ? (
           <MatchStep key={stepKey} {...common} />
+        ) : mission.step === 'review' || mission.step === 'boss' ? (
+          <QuizStep
+            key={stepKey}
+            {...common}
+            words={words}
+            onSetSilent={setSilent}
+            onFinish={finish}
+            onRetryBoss={retry}
+            onExit={onExit}
+          />
         ) : (
-          <ComingSoonStep label={STEP_LABELS[mission.step]} onExit={onExit} />
+          // 'done': 예전 저장 데이터 등으로 여기 오면 클리어 처리만 한다
+          <div className={`${s.stack} ${s.center}`} style={{ flex: 1, justifyContent: 'center' }}>
+            <Mascot size={120} mood="cheer" />
+            <SpeechBubble>오늘의 모험을 모두 끝냈어! 🎉</SpeechBubble>
+            <Button onClick={finish}>🎁 클리어 보상 받기</Button>
+          </div>
         )}
       </div>
     </main>
-  );
-}
-
-/** 아직 만들지 않은 단계 (M5에서 채움) */
-function ComingSoonStep({ label, onExit }: { label: string; onExit: () => void }) {
-  return (
-    <div className={`${s.stack} ${s.center}`} style={{ flex: 1, justifyContent: 'center' }}>
-      <Mascot size={120} mood="cheer" />
-      <SpeechBubble>
-        여기까지 완료! 🎉
-        <br />
-        다음 단계 <b>‘{label}’</b>는 곧 열려요. 진행 상황은 저장됐어!
-      </SpeechBubble>
-      <Button onClick={onExit}>홈으로</Button>
-    </div>
   );
 }
