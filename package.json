@@ -7,8 +7,8 @@
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "node scripts/vitest.mjs run",
+    "test:watch": "node scripts/vitest.mjs",
     "lint": "eslint .",
     "icons": "pwa-assets-generator",
     "validate:words": "tsx scripts/validateWords.ts"

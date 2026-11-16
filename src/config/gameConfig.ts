@@ -5,6 +5,9 @@
 export const gameConfig = {
   mascotName: '퀘스티',
 
+  /** 출석번호 범위 1 ~ attendanceNoMax (학급 인원에 맞게 조정) */
+  attendanceNoMax: 40,
+
   /** 하루 학습 단어 수 */
   wordsPerDay: 10,
 

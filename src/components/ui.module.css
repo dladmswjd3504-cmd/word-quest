@@ -1,0 +1,154 @@
+/* ── 버튼 ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 52px;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: 0 4px 0 rgba(58, 58, 90, 0.18);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  user-select: none;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(58, 58, 90, 0.18);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn:focus-visible {
+  outline: 3px solid var(--color-sky-deep);
+  outline-offset: 3px;
+}
+.primary {
+  background: var(--color-coral);
+  color: #fff;
+}
+.secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+.mint {
+  background: var(--color-mint-deep);
+  color: #fff;
+}
+.ghost {
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+.block {
+  width: 100%;
+}
+
+/* ── 말풍선 ── */
+.bubble {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  line-height: 1.45;
+}
+.bubble::before {
+  content: '';
+  position: absolute;
+  left: 28px;
+  top: -10px;
+  width: 16px;
+  height: 16px;
+  background: var(--color-surface);
+  border-left: 2px solid var(--color-border);
+  border-top: 2px solid var(--color-border);
+  transform: rotate(45deg);
+}
+
+/* 마스코트 오른쪽에 놓인 말풍선: 꼬리가 왼쪽(마스코트)을 가리킴 */
+.bubbleLeft::before {
+  left: -10px;
+  top: 50%;
+  margin-top: -8px;
+  border-top: none;
+  border-right: none;
+  border-left: 2px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
+}
+
+/* ── 발음 버튼 ── */
+.speak {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-sky);
+  font-size: 1.6rem;
+  box-shadow: 0 4px 0 var(--color-sky-deep);
+}
+.speak:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--color-sky-deep);
+}
+.speak:disabled {
+  opacity: 0.4;
+}
+
+/* ── 진행 막대 ── */
+.progress {
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-mint), var(--color-mint-deep));
+  transition: width 0.3s ease;
+}
+
+/* ── 카드 ── */
+.card {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4);
+}
+
+/* ── 알림 띠 ── */
+.notice {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: #fff3cd;
+  color: #7a5a00;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.mascotBounce {
+  animation: bounce 2.2s ease-in-out infinite;
+}
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}

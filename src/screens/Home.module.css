@@ -1,0 +1,62 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.nickname {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.gear {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  font-size: 1.3rem;
+}
+.quest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-color: var(--color-coral-soft);
+  background: linear-gradient(160deg, #fff 60%, #fff1ef);
+}
+.questTitle {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+.bossTag {
+  margin: 0;
+  font-weight: 700;
+  color: #b4413a;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+.stat {
+  padding: var(--space-3) var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  text-align: center;
+}
+.statValue {
+  font-weight: 800;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+.xpLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
