@@ -2,7 +2,7 @@ import { gameConfig } from '../config/gameConfig.ts';
 import equipmentList from '../data/equipment.json';
 import type { Course, CourseProgress, SaveData } from '../types.ts';
 import { bossKindOf } from './boss.ts';
-import { applyAnswer, applySpelling } from './mastery.ts';
+import { applyAnswer, applyMatchResult, applySpelling } from './mastery.ts';
 import { grantTitles } from './titles.ts';
 import { levelFromXp } from './xp.ts';
 
@@ -42,6 +42,15 @@ function updateCourse(save: SaveData, course: Course, fn: (p: CourseProgress) =>
 /** 듣기·짝맞추기·복습·보스 문제 한 개의 결과를 저장 데이터에 반영한다 */
 export function recordAnswer(save: SaveData, course: Course, wordId: string, correct: boolean, today: string): SaveData {
   const { next, conqueredWeak } = applyAnswer(save.progress[course].words[wordId], correct, today);
+  const updated = updateCourse(save, course, (p) => ({ ...p, words: { ...p.words, [wordId]: next } }));
+  return conqueredWeak
+    ? { ...updated, stats: { ...updated.stats, weakConquered: updated.stats.weakConquered + 1 } }
+    : updated;
+}
+
+/** 카드 짝맞추기 한 판에서 단어 하나의 결과 (틀린 횟수 기준, PRD 4.2) */
+export function recordMatchResult(save: SaveData, course: Course, wordId: string, wrongTimes: number, today: string): SaveData {
+  const { next, conqueredWeak } = applyMatchResult(save.progress[course].words[wordId], wrongTimes, today);
   const updated = updateCourse(save, course, (p) => ({ ...p, words: { ...p.words, [wordId]: next } }));
   return conqueredWeak
     ? { ...updated, stats: { ...updated.stats, weakConquered: updated.stats.weakConquered + 1 } }

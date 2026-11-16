@@ -1,12 +1,15 @@
+import { useEffect } from 'react';
 import { Button, ProgressBar, SpeechBubble } from '../../components/ui.tsx';
 import { Mascot } from '../../components/Mascot.tsx';
 import { getWordsOfDay } from '../../data/words.ts';
 import { localDateString } from '../../logic/date.ts';
-import { getActiveMission, STEP_LABELS, stepPosition } from '../../logic/mission.ts';
+import { getActiveMission, needsQuestions, prepareStep, STEP_LABELS, stepPosition } from '../../logic/mission.ts';
 import { useSave } from '../../state/GameContext.tsx';
 import { useWords } from '../../state/useWords.ts';
 import type { MissionState, SaveData } from '../../types.ts';
 import { LearnStep } from './LearnStep.tsx';
+import { ListenStep } from './ListenStep.tsx';
+import { MatchStep } from './MatchStep.tsx';
 import m from './mission.module.css';
 import s from '../screens.module.css';
 
@@ -17,6 +20,18 @@ export function MissionScreen({ onExit }: { onExit: () => void }) {
   const words = useWords(course);
   const today = localDateString();
   const mission = getActiveMission(save, course, today);
+  const waitingForQuestions = !!mission && needsQuestions(mission);
+
+  // 듣기·짝맞추기 단계에 처음 들어오면 문제를 만들어 저장한다 (다시 열어도 같은 문제)
+  useEffect(() => {
+    if (!waitingForQuestions || !words) return;
+    update((sv) => {
+      const mi = sv.currentMission;
+      if (!mi || !needsQuestions(mi)) return sv;
+      const dayWords = getWordsOfDay(words, mi.day);
+      return { ...sv, currentMission: prepareStep(mi, { dayWords, pool: words, rng: Math.random }) };
+    });
+  }, [waitingForQuestions, words, update]);
 
   if (!mission) {
     return (
@@ -27,13 +42,16 @@ export function MissionScreen({ onExit }: { onExit: () => void }) {
       </main>
     );
   }
-  if (!words) return <main className={`${s.page} ${s.full} ${s.center}`}>불러오는 중…</main>;
+  if (!words || waitingForQuestions) return <main className={`${s.page} ${s.full} ${s.center}`}>불러오는 중…</main>;
 
   const dayWords = getWordsOfDay(words, mission.day);
   const pos = stepPosition(mission);
   /** 저장 데이터와 진행 중 미션을 함께 바꾼다 (한 번에 저장) */
   const updateMission = (fn: (save: SaveData, mission: MissionState) => SaveData) =>
     update((sv) => (sv.currentMission ? fn(sv, sv.currentMission) : sv));
+  const setSilent = (silentMode: boolean) => update((sv) => ({ ...sv, settings: { ...sv.settings, silentMode } }));
+  const stepKey = `${mission.day}-${mission.date}-${mission.step}`;
+  const common = { mission, dayWords, settings: save.settings, today, updateMission };
 
   return (
     <main className={m.screen}>
@@ -56,14 +74,11 @@ export function MissionScreen({ onExit }: { onExit: () => void }) {
 
       <div className={m.body}>
         {mission.step === 'learn' ? (
-          <LearnStep
-            key={`${mission.day}-${mission.date}`}
-            mission={mission}
-            dayWords={dayWords}
-            settings={save.settings}
-            today={today}
-            updateMission={updateMission}
-          />
+          <LearnStep key={stepKey} {...common} />
+        ) : mission.step === 'listen' ? (
+          <ListenStep key={stepKey} {...common} onSetSilent={setSilent} />
+        ) : mission.step === 'match' ? (
+          <MatchStep key={stepKey} {...common} />
         ) : (
           <ComingSoonStep label={STEP_LABELS[mission.step]} onExit={onExit} />
         )}
@@ -72,13 +87,13 @@ export function MissionScreen({ onExit }: { onExit: () => void }) {
   );
 }
 
-/** 아직 만들지 않은 단계 (M4·M5에서 채움) */
+/** 아직 만들지 않은 단계 (M5에서 채움) */
 function ComingSoonStep({ label, onExit }: { label: string; onExit: () => void }) {
   return (
     <div className={`${s.stack} ${s.center}`} style={{ flex: 1, justifyContent: 'center' }}>
       <Mascot size={120} mood="cheer" />
       <SpeechBubble>
-        단어 학습 완료! 🎉
+        여기까지 완료! 🎉
         <br />
         다음 단계 <b>‘{label}’</b>는 곧 열려요. 진행 상황은 저장됐어!
       </SpeechBubble>

@@ -262,3 +262,176 @@
     opacity: 1;
   }
 }
+
+/* ── 듣고 맞추기 ── */
+.bigSpeak {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 112px;
+  height: 112px;
+  border: 3px solid var(--color-sky-deep);
+  border-radius: 50%;
+  background: #eaf7fd;
+  font-size: 2.6rem;
+  box-shadow: 0 5px 0 rgba(58, 58, 90, 0.15);
+}
+.bigSpeak:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 rgba(58, 58, 90, 0.15);
+}
+.bigSpeakLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-sky-deep);
+}
+.choices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+.choice {
+  min-height: 60px;
+  padding: var(--space-3) var(--space-4);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-text);
+  box-shadow: 0 4px 0 rgba(58, 58, 90, 0.12);
+  word-break: keep-all;
+}
+.choiceEn {
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  word-break: break-word;
+}
+.choice:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(58, 58, 90, 0.12);
+}
+.choice:focus-visible,
+.matchCard:focus-visible,
+.toggle:focus-visible,
+.bigSpeak:focus-visible {
+  outline: 3px solid var(--color-sky-deep);
+  outline-offset: 3px;
+}
+.toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+.toggle[aria-pressed='true'] {
+  border-color: var(--color-sky-deep);
+  color: var(--color-text);
+}
+.toggle:disabled {
+  opacity: 0.7;
+}
+.toggleNote {
+  font-size: 0.8rem;
+}
+
+/* ── 카드 짝맞추기 ── */
+.matchGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+.matchCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 76px;
+  padding: var(--space-2);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--color-text);
+  box-shadow: 0 3px 0 rgba(58, 58, 90, 0.12);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  transition: transform 0.12s ease;
+}
+.matchEn {
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+}
+.matchKo {
+  background: #fffbea;
+}
+.matchSelected {
+  border-color: var(--color-sky-deep);
+  border-width: 4px;
+  background: #eaf7fd;
+  transform: translateY(-3px);
+}
+.matchDone {
+  border-color: var(--color-correct);
+  border-style: dashed;
+  background: #eefaf4;
+  color: var(--color-text-muted);
+  box-shadow: none;
+}
+.matchWrong {
+  border-color: var(--color-wrong);
+  background: #fff3f1;
+  animation: shake 0.35s ease;
+}
+.matchMark {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+.matchDone .matchMark {
+  color: var(--color-correct);
+}
+.matchWrong .matchMark {
+  color: var(--color-wrong);
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .matchCard,
+  .matchWrong,
+  .feedback {
+    animation: none;
+    transition: none;
+  }
+  .matchSelected {
+    transform: none;
+  }
+}
