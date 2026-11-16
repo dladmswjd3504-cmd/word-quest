@@ -36,9 +36,10 @@ describe('실제 단어 데이터', () => {
   it('고등학교 단어는 오류도 경고도 없다', () => {
     expect(validateWordList(high, 'high')).toEqual({ errors: [], warnings: [] });
   });
-  it('Day 1~5가 열려 있다 (JSON의 Day 수만큼 자동으로 열림)', () => {
-    expect(getLastDay(middle as Word[])).toBe(5);
-    expect(getWordsOfDay(high as Word[], 3)).toHaveLength(10);
+  it('JSON에 있는 Day 수만큼 열리고, 두 과정의 Day 수가 같다 (지금 Day 1~10)', () => {
+    expect(getLastDay(middle as Word[])).toBe(10);
+    expect(getLastDay(high as Word[])).toBe(10);
+    expect(getWordsOfDay(high as Word[], 8)).toHaveLength(10);
   });
   it('중학교와 고등학교 단어 ID가 겹치지 않는다', () => {
     const ids = new Set([...middle, ...high].map((w) => w.id));
