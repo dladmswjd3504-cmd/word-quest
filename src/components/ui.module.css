@@ -152,3 +152,16 @@
     transform: translateY(-8px);
   }
 }
+/* 5단계 이상 캐릭터 주변 반짝이 */
+.mascotTwinkle {
+  animation: mascotTwinkle 1.8s ease-in-out infinite;
+}
+@keyframes mascotTwinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}

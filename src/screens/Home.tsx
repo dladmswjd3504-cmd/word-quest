@@ -65,7 +65,7 @@ export function Home({
       )}
 
       <div className={s.mascotRow}>
-        <Mascot size={110} bounce mood={status?.kind === 'clearedToday' ? 'cheer' : 'happy'} />
+        <Mascot size={120} bounce withEquipment mood={status?.kind === 'clearedToday' ? 'cheer' : 'happy'} />
         <SpeechBubble tail="left">{greeting(status?.kind, !!active)}</SpeechBubble>
       </div>
 

@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { Button } from '../../components/ui.tsx';
+import { useSfx } from '../../lib/sfx.ts';
 import type { Word } from '../../types.ts';
 import m from './mission.module.css';
 
@@ -18,9 +20,22 @@ export function AnswerFeedback({
   onNext: () => void;
   nextLabel?: string;
 }) {
+  const sfx = useSfx();
+  useEffect(() => {
+    sfx(correct ? 'correct' : 'wrong');
+  }, [correct, sfx]);
+
   return (
     <>
       <div className={`${m.feedback} ${correct ? m.correct : m.wrong}`} role="status" aria-live="assertive">
+        {correct && (
+          <span className={m.burst} aria-hidden>
+            <span>✨</span>
+            <span>⭐</span>
+            <span>✨</span>
+            <span>⭐</span>
+          </span>
+        )}
         <span className={m.feedbackIcon} aria-hidden>
           {correct ? '✔' : '✖'}
         </span>

@@ -20,7 +20,7 @@ export function CharacterScreen() {
       <h1 className={s.title}>🧙 내 캐릭터</h1>
 
       <div className={t.hero}>
-        <Mascot size={150} bounce stage={evo.stage} />
+        <Mascot size={170} bounce stage={evo.stage} withEquipment />
         <div className={t.heroName}>{profile.nickname}</div>
         <span className={t.evoTag}>
           {evo.stage}단계 · {evo.name}

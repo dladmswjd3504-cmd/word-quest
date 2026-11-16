@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, Notice, SpeechBubble } from '../../components/ui.tsx';
 import { Mascot } from '../../components/Mascot.tsx';
+import { useSfx } from '../../lib/sfx.ts';
 import { speak, useTtsStatus } from '../../lib/tts.ts';
 import { advanceStep, finishMatch, type MatchSummary } from '../../logic/mission.ts';
 import type { MatchCard } from '../../logic/questions.ts';
@@ -36,6 +37,7 @@ export function MatchStep({
   updateMission: (fn: (save: SaveData, mission: MissionState) => SaveData) => void;
 }) {
   const tts = useTtsStatus();
+  const sfx = useSfx();
   const silent = settings.silentMode || tts === 'unavailable';
   const cards = mission.questions as MatchCard[];
   const pairCount = new Set(cards.map((c) => c.wordId)).size;
@@ -130,6 +132,7 @@ export function MatchStep({
       const enCard = card.side === 'en' ? card : selected;
       if (!silent) speak(enCard.text, settings.ttsRate);
       const next = [...matched, card.wordId];
+      sfx('pair');
       setMatched(next);
       if (next.length === pairCount) finish(wrongCounts.current);
     } else {
@@ -137,6 +140,7 @@ export function MatchStep({
         ...wrongCounts.current,
         [selected.wordId]: (wrongCounts.current[selected.wordId] ?? 0) + 1,
       };
+      sfx('wrong');
       setWrongPair([selected.cardId, card.cardId]);
     }
   };

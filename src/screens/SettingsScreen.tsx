@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Card, Notice } from '../components/ui.tsx';
+import { playSfx } from '../lib/sfx.ts';
 import { speak, useTtsStatus } from '../lib/tts.ts';
 import { localDateString } from '../logic/date.ts';
 import { switchCourse } from '../logic/practice.ts';
@@ -31,7 +32,14 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
       <Card>
         <div className={t.section}>
           <h2 className={t.sectionTitle}>🔊 소리</h2>
-          <SwitchRow label="효과음" checked={settings.sfx} onChange={(v) => set('sfx', v)} />
+          <SwitchRow
+            label="효과음"
+            checked={settings.sfx}
+            onChange={(v) => {
+              set('sfx', v);
+              if (v) playSfx('correct');
+            }}
+          />
           <div className={t.settingRow}>
             <span className={t.settingLabel}>발음 속도</span>
             <Segmented

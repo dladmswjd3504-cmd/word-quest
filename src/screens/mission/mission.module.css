@@ -564,3 +564,58 @@
     animation: none;
   }
 }
+
+/* ── 정답 반짝이 ── */
+.feedback {
+  position: relative;
+}
+.burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.burst > span {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  font-size: 1.3rem;
+  opacity: 0;
+  animation: burst 0.7s ease-out forwards;
+}
+.burst > span:nth-child(1) {
+  --dx: -70px;
+  --dy: -22px;
+}
+.burst > span:nth-child(2) {
+  --dx: 64px;
+  --dy: -26px;
+  animation-delay: 0.05s;
+}
+.burst > span:nth-child(3) {
+  --dx: -48px;
+  --dy: 30px;
+  animation-delay: 0.1s;
+}
+.burst > span:nth-child(4) {
+  --dx: 52px;
+  --dy: 28px;
+  animation-delay: 0.08s;
+}
+@keyframes burst {
+  0% {
+    transform: translate(-50%, 0) scale(0.4);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), var(--dy)) scale(1.1);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .burst {
+    display: none;
+  }
+}

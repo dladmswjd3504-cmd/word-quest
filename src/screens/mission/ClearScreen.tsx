@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, SpeechBubble } from '../../components/ui.tsx';
 import { Mascot } from '../../components/Mascot.tsx';
 import equipmentList from '../../data/equipment.json';
 import phrases from '../../data/phrases.json';
+import { useSfx } from '../../lib/sfx.ts';
 import { pickPhrase } from '../../logic/feedback.ts';
 import type { ClearResult } from '../../logic/progress.ts';
 import { titleById } from '../../logic/titles.ts';
@@ -21,6 +22,15 @@ export function ClearScreen({ day, result, onHome }: { day: number; result: Clea
     .map((id) => equipmentList.find((e) => e.id === id))
     .filter((e) => e !== undefined);
   const titles = result.newTitles.map((id) => titleById(id)).filter((t) => t !== undefined);
+  const sfx = useSfx();
+
+  // 클리어 팡파르, 레벨 업이면 이어서 레벨 업 소리
+  useEffect(() => {
+    sfx('clear');
+    if (!leveledUp) return;
+    const timer = window.setTimeout(() => sfx('levelUp'), 900);
+    return () => window.clearTimeout(timer);
+  }, [sfx, leveledUp]);
 
   return (
     <main className={`${s.page} ${s.full}`}>
