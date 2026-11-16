@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { detectInAppBrowser, externalOpenUrl } from '../src/lib/inAppBrowser.ts';
 import { advanceStep, getActiveMission, missionSteps, startMission, stepPosition } from '../src/logic/mission.ts';
-import { formatNickname, randomNicknameIndexes } from '../src/logic/nickname.ts';
+import { formatNickname, normalizeNumberInput, randomNicknameIndexes } from '../src/logic/nickname.ts';
 import { createRng } from '../src/logic/random.ts';
 import type { SpellingQuestion } from '../src/logic/questions.ts';
 import { migrateSave } from '../src/storage/migrate.ts';
@@ -63,6 +63,17 @@ describe('닉네임', () => {
     expect(formatNickname(0, 0)).toBe('Brave 용감한 · 토끼');
     const { adj, animal } = randomNicknameIndexes(createRng(1));
     expect(formatNickname(adj, animal)).toMatch(/^[A-Z][a-z]+ .+ · .+$/);
+  });
+});
+
+describe('출석번호 입력', () => {
+  it('숫자만 남기고, 넓은 숫자(전각)도 받고, 2자리까지', () => {
+    expect(normalizeNumberInput('12')).toBe('12');
+    expect(normalizeNumberInput('１２')).toBe('12');
+    expect(normalizeNumberInput('3번')).toBe('3');
+    expect(normalizeNumberInput(' 7 ')).toBe('7');
+    expect(normalizeNumberInput('123')).toBe('12');
+    expect(normalizeNumberInput('ㄱ')).toBe('');
   });
 });
 

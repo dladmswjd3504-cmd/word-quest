@@ -5,7 +5,7 @@ import { gameConfig } from '../config/gameConfig.ts';
 import { isIOS, isStandalone } from '../lib/inAppBrowser.ts';
 import { useInstallPrompt } from '../lib/installPrompt.ts';
 import { speak, useTtsStatus } from '../lib/tts.ts';
-import { ADJECTIVES, ANIMALS, formatNickname, randomNicknameIndexes } from '../logic/nickname.ts';
+import { ADJECTIVES, ANIMALS, formatNickname, normalizeNumberInput, randomNicknameIndexes } from '../logic/nickname.ts';
 import { createInitialSave } from '../storage/save.ts';
 import { requestPersistentStorage } from '../storage/storage.ts';
 import type { Course, SaveData } from '../types.ts';
@@ -111,10 +111,9 @@ export function Onboarding({ onDone }: { onDone: (save: SaveData) => void }) {
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            maxLength={2}
             placeholder={`1 ~ ${gameConfig.attendanceNoMax}`}
             value={numberText}
-            onChange={(e) => setNumberText(e.target.value.replace(/\D/g, ''))}
+            onChange={(e) => setNumberText(normalizeNumberInput(e.target.value))}
             aria-label="출석번호"
             autoFocus
           />
