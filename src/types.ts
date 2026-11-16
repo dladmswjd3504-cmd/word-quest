@@ -37,6 +37,8 @@ export interface WordProgress {
 export interface CourseProgress {
   completedDays: number[];
   bossWins: number[];
+  /** 이 과정에서 마지막으로 Day를 클리어한 로컬 날짜 (같은 날 같은 과정 두 번 클리어 방지) */
+  lastClearDate: string | null;
   words: Record<string, WordProgress>;
 }
 
@@ -55,7 +57,9 @@ export interface Settings {
 }
 
 export interface Player {
+  /** xp(누적)에서 계산되는 값. 화면 표시용으로 함께 저장 */
   level: number;
+  /** 지금까지 얻은 누적 총 경험치 */
   xp: number;
   gold: number;
   totalAttendanceDays: number;

@@ -110,7 +110,7 @@ describe('migrateSave', () => {
     expect(m.stats.weakConquered).toBe(0);
     expect(m.currentMission).toBeNull();
     expect(m.lastBackupDate).toBeNull();
-    expect(m.progress.high).toEqual({ completedDays: [], bossWins: [], words: {} });
+    expect(m.progress.high).toEqual({ completedDays: [], bossWins: [], lastClearDate: null, words: {} });
   });
 
   it('이상한 값은 안전한 범위로 바로잡는다', () => {

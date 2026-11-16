@@ -83,6 +83,19 @@ export const gameConfig = {
     passRate: 0.7,
   },
 
+  /** 복습 퀴즈·보스전에서 약점 단어가 차지할 수 있는 최대 비율 */
+  weakMaxShare: 0.5,
+
+  /** 칭호 달성 기준 (PRD 4.5) */
+  titles: {
+    attendance: [7, 15, 30],
+    listenMaster: 100,
+    matchDoctor: 20,
+    weakConqueror: 10,
+    spellingMaster: 50,
+    reviewMaster: 30,
+  },
+
   /** 마지막 백업 후 며칠이 지나면 백업 알림 */
   backupReminderDays: 5,
 

@@ -7,7 +7,7 @@ export const SAVE_KEY = 'wordquest.save';
 export const CORRUPT_KEY = 'wordquest.save.corrupt';
 
 export function createEmptyCourseProgress(): CourseProgress {
-  return { completedDays: [], bossWins: [], words: {} };
+  return { completedDays: [], bossWins: [], lastClearDate: null, words: {} };
 }
 
 export function createInitialSave(input: {

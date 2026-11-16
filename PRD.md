@@ -330,7 +330,7 @@ interface SaveData {
   version: 1;
   profile: { nickname: string; attendanceNo: number; createdAt: string; };
   settings: { sfx: boolean; ttsRate: 'normal'|'slow'; silentMode: boolean; fontSize: 'normal'|'large'; course: 'middle'|'high'; };
-  player: { level: number; xp: number; gold: number; totalAttendanceDays: number; attendanceDates: string[]; titles: string[]; equipment: string[]; };
+  player: { level: number; xp: number /* 누적 총 경험치 */; gold: number; totalAttendanceDays: number; attendanceDates: string[]; titles: string[]; equipment: string[]; };
   progress: {
     middle: CourseProgress;
     high: CourseProgress;
@@ -353,6 +353,7 @@ interface MissionState {
 interface CourseProgress {
   completedDays: number[];            // 완료한 Day 번호
   bossWins: number[];                 // 승리한 보스전 Day 번호 (5, 10, ... 30)
+  lastClearDate: string | null;       // 이 과정의 마지막 클리어 날짜 (같은 날 같은 과정 두 번 클리어 방지)
   words: Record<string, {             // key = word id
     mastery: number;                  // 0~5
     spellingStage: 1|2|3;

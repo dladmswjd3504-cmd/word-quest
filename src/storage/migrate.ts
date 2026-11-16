@@ -100,6 +100,7 @@ function normalizeCourseProgress(value: unknown): CourseProgress {
   return {
     completedDays: uniqueSortedDays(p.completedDays),
     bossWins: uniqueSortedDays(p.bossWins),
+    lastClearDate: isDateString(p.lastClearDate) ? p.lastClearDate : null,
     words,
   };
 }
