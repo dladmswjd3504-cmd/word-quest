@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Mascot } from '../components/Mascot.tsx';
-import { Button, SpeechBubble } from '../components/ui.tsx';
+import type { PracticeKind } from '../logic/practice.ts';
+import { AchievementsScreen } from './AchievementsScreen.tsx';
+import { CharacterScreen } from './CharacterScreen.tsx';
+import { DexScreen } from './DexScreen.tsx';
 import { Home } from './Home.tsx';
+import { SettingsScreen } from './SettingsScreen.tsx';
+import { WeakScreen } from './WeakScreen.tsx';
 import t from './Shell.module.css';
-import s from './screens.module.css';
 
 export type Tab = 'home' | 'character' | 'dex' | 'weak' | 'achievements' | 'settings';
 
@@ -16,17 +19,27 @@ const TABS: { id: Exclude<Tab, 'settings'>; icon: string; label: string }[] = [
 ];
 
 /** 하단 탭이 있는 기본 화면. 설정은 홈의 ⚙️로 연다 (PRD 4.6) */
-export function Shell({ onOpenMission }: { onOpenMission: () => void }) {
+export function Shell({
+  onOpenMission,
+  onOpenPractice,
+}: {
+  onOpenMission: () => void;
+  onOpenPractice: (kind: PracticeKind) => void;
+}) {
   const [tab, setTab] = useState<Tab>('home');
+  const goHome = () => setTab('home');
 
   return (
     <div className={t.shell}>
       <div className={t.content}>
-        {tab === 'home' ? (
-          <Home onOpenMission={onOpenMission} onOpenSettings={() => setTab('settings')} />
-        ) : (
-          <ComingSoon title={tab === 'settings' ? '⚙️ 설정' : TABS.find((x) => x.id === tab)!.label} onBack={() => setTab('home')} />
+        {tab === 'home' && (
+          <Home onOpenMission={onOpenMission} onOpenSettings={() => setTab('settings')} onOpenPractice={onOpenPractice} />
         )}
+        {tab === 'character' && <CharacterScreen />}
+        {tab === 'dex' && <DexScreen />}
+        {tab === 'weak' && <WeakScreen onOpenPractice={onOpenPractice} />}
+        {tab === 'achievements' && <AchievementsScreen />}
+        {tab === 'settings' && <SettingsScreen onBack={goHome} />}
       </div>
       <nav className={t.tabbar} aria-label="메뉴">
         {TABS.map((x) => (
@@ -44,20 +57,6 @@ export function Shell({ onOpenMission }: { onOpenMission: () => void }) {
           </button>
         ))}
       </nav>
-    </div>
-  );
-}
-
-/** M6에서 채워질 화면 자리 */
-function ComingSoon({ title, onBack }: { title: string; onBack: () => void }) {
-  return (
-    <div className={`${s.page} ${s.center}`}>
-      <h1 className={s.title}>{title}</h1>
-      <Mascot size={120} mood="think" />
-      <SpeechBubble>이 화면은 지금 만들고 있어요. 조금만 기다려 줘! 🛠️</SpeechBubble>
-      <Button variant="secondary" onClick={onBack}>
-        홈으로
-      </Button>
     </div>
   );
 }

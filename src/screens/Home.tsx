@@ -5,6 +5,7 @@ import { getLastDay, getWordsOfDay } from '../data/words.ts';
 import { bossKindOf } from '../logic/boss.ts';
 import { localDateString } from '../logic/date.ts';
 import { getActiveMission, startMission, STEP_LABELS } from '../logic/mission.ts';
+import { needsBackupReminder, weakWords, type PracticeKind } from '../logic/practice.ts';
 import { getDayStatus } from '../logic/progress.ts';
 import { levelProgress } from '../logic/xp.ts';
 import { useSave } from '../state/GameContext.tsx';
@@ -13,7 +14,15 @@ import h from './Home.module.css';
 import s from './screens.module.css';
 
 /** 🏠 홈 (오늘의 모험) */
-export function Home({ onOpenMission, onOpenSettings }: { onOpenMission: () => void; onOpenSettings: () => void }) {
+export function Home({
+  onOpenMission,
+  onOpenSettings,
+  onOpenPractice,
+}: {
+  onOpenMission: () => void;
+  onOpenSettings: () => void;
+  onOpenPractice: (kind: PracticeKind) => void;
+}) {
   const { save, update, persistent, saveFailed } = useSave();
   const course = save.settings.course;
   const words = useWords(course);
@@ -24,6 +33,7 @@ export function Home({ onOpenMission, onOpenSettings }: { onOpenMission: () => v
 
   const lastDay = words ? getLastDay(words) : 0;
   const status = words ? getDayStatus(progress, today, lastDay) : null;
+  const weakCount = words ? weakWords(words, progress).length : 0;
 
   const start = (day: number) => {
     if (!words) return;
@@ -45,6 +55,14 @@ export function Home({ onOpenMission, onOpenSettings }: { onOpenMission: () => v
 
       {!persistent && <Notice>이 브라우저에서는 기록이 저장되지 않아요. 시크릿 모드라면 일반 창으로 열어 주세요.</Notice>}
       {saveFailed && <Notice>저장 공간이 부족해서 기록을 저장하지 못했어요.</Notice>}
+      {needsBackupReminder(save, today) && (
+        <Notice icon="💾">
+          기록을 지키려면 가끔 백업 코드를 만들어 두자!{' '}
+          <button type="button" className={h.linkButton} onClick={onOpenSettings}>
+            설정에서 백업하기
+          </button>
+        </Notice>
+      )}
 
       <div className={s.mascotRow}>
         <Mascot size={110} bounce mood={status?.kind === 'clearedToday' ? 'cheer' : 'happy'} />
@@ -79,8 +97,7 @@ export function Home({ onOpenMission, onOpenSettings }: { onOpenMission: () => v
             <p className={s.muted}>
               {status.nextDay > lastDay
                 ? `준비된 Day ${lastDay}까지 모두 끝냈어! 새 단어가 곧 도착해요.`
-                : `내일 Day ${status.nextDay}에서 만나!`}{' '}
-              복습 게임은 곧 열려요.
+                : `내일 Day ${status.nextDay}에서 만나!`}
             </p>
           </>
         ) : (
@@ -90,6 +107,23 @@ export function Home({ onOpenMission, onOpenSettings }: { onOpenMission: () => v
           </>
         )}
       </Card>
+
+      {status && !active && status.kind !== 'ready' && (
+        <Card className={h.practice}>
+          <div className={h.practiceTitle}>🎮 복습 게임</div>
+          <p className={s.muted} style={{ margin: 0 }}>
+            경험치는 없지만, 할수록 단어 숙련도가 올라가요!
+          </p>
+          <Button block variant="mint" onClick={() => onOpenPractice('review')}>
+            🔁 배운 단어 복습하기
+          </Button>
+          {weakCount > 0 && (
+            <Button block variant="secondary" onClick={() => onOpenPractice('weak')}>
+              ⚔️ 약점 단어 정복하기 ({weakCount}개)
+            </Button>
+          )}
+        </Card>
+      )}
 
       <div className={h.stats}>
         <Stat label="레벨" value={`Lv ${lp.level}`} />

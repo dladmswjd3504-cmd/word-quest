@@ -5,10 +5,12 @@ import { getWordsOfDay, loadWords } from './data/words.ts';
 import { detectInAppBrowser } from './lib/inAppBrowser.ts';
 import { localDateString } from './logic/date.ts';
 import { startMission } from './logic/mission.ts';
+import type { PracticeKind } from './logic/practice.ts';
 import { appActivity } from './pwa.ts';
 import { InAppBrowserNotice } from './screens/InAppBrowserNotice.tsx';
 import { MissionScreen } from './screens/mission/MissionScreen.tsx';
 import { Onboarding } from './screens/Onboarding.tsx';
+import { PracticeScreen } from './screens/PracticeScreen.tsx';
 import { Shell } from './screens/Shell.tsx';
 import { GameProvider, useGame } from './state/GameContext.tsx';
 import type { SaveData } from './types.ts';
@@ -22,17 +24,19 @@ export default function App() {
   );
 }
 
-type View = 'tabs' | 'mission';
+type View = { name: 'tabs' } | { name: 'mission' } | { name: 'practice'; kind: PracticeKind };
+const TABS_VIEW: View = { name: 'tabs' };
 
 function Root() {
   const { save, loadStatus, replace } = useGame();
   const [inApp] = useState(() => detectInAppBrowser());
   const [inAppDismissed, setInAppDismissed] = useState(false);
   const [corruptAcknowledged, setCorruptAcknowledged] = useState(false);
-  const [view, setView] = useState<View>('tabs');
+  const [view, setView] = useState<View>(TABS_VIEW);
 
+  // 미션·복습 게임 중에는 새 버전 적용(새로고침)을 미룬다
   useEffect(() => {
-    appActivity.busy = view === 'mission';
+    appActivity.busy = view.name !== 'tabs';
   }, [view]);
 
   if (inApp && !inAppDismissed) {
@@ -61,15 +65,16 @@ function Root() {
           const words = await loadWords(course);
           const today = localDateString();
           replace(startMission(created, { course, day: 1, dayWords: getWordsOfDay(words, 1), today, rng: Math.random }));
-          setView('mission');
+          setView({ name: 'mission' });
         }}
       />
     );
   }
 
-  return view === 'mission' ? (
-    <MissionScreen onExit={() => setView('tabs')} />
-  ) : (
-    <Shell onOpenMission={() => setView('mission')} />
+  const goTabs = () => setView(TABS_VIEW);
+  if (view.name === 'mission') return <MissionScreen onExit={goTabs} />;
+  if (view.name === 'practice') return <PracticeScreen kind={view.kind} onExit={goTabs} />;
+  return (
+    <Shell onOpenMission={() => setView({ name: 'mission' })} onOpenPractice={(kind) => setView({ name: 'practice', kind })} />
   );
 }

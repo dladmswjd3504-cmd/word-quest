@@ -9,7 +9,11 @@ export interface TitleDef {
   name: string;
   description: string;
   achieved: (save: SaveData) => boolean;
+  /** 업적 화면의 진행도 표시용 (예: 37 / 100). 횟수형 칭호에만 있다 */
+  progress?: (save: SaveData) => { current: number; target: number };
 }
+
+const count = (current: number, target: number) => ({ current: Math.min(current, target), target });
 
 const anyCourse = (save: SaveData, fn: (p: SaveData['progress'][keyof SaveData['progress']]) => boolean) =>
   COURSES.some((c) => fn(save.progress[c]));
@@ -28,6 +32,7 @@ export const TITLES: readonly TitleDef[] = [
       name: `총 출석 ${n}일`,
       description: `총 출석 ${n}일 달성`,
       achieved: (s) => s.player.totalAttendanceDays >= n,
+      progress: (s) => count(s.player.totalAttendanceDays, n),
     }),
   ),
   {
@@ -35,24 +40,28 @@ export const TITLES: readonly TitleDef[] = [
     name: '듣기 마스터',
     description: `듣고 맞추기 누적 정답 ${T.listenMaster}개`,
     achieved: (s) => s.stats.listenCorrect >= T.listenMaster,
+    progress: (s) => count(s.stats.listenCorrect, T.listenMaster),
   },
   {
     id: 'match-doctor',
     name: '짝꿍 박사',
     description: `카드 짝맞추기 ${T.matchDoctor}판 완료`,
     achieved: (s) => s.stats.matchPlays >= T.matchDoctor,
+    progress: (s) => count(s.stats.matchPlays, T.matchDoctor),
   },
   {
     id: 'weak-conqueror',
     name: '약점 정복',
     description: `약점 단어 ${T.weakConqueror}개 정복`,
     achieved: (s) => s.stats.weakConquered >= T.weakConqueror,
+    progress: (s) => count(s.stats.weakConquered, T.weakConqueror),
   },
   {
     id: 'spelling-master',
     name: '철자의 달인',
     description: `스펠링 3단계 정답 ${T.spellingMaster}회`,
     achieved: (s) => s.stats.spellingStage3Correct >= T.spellingMaster,
+    progress: (s) => count(s.stats.spellingStage3Correct, T.spellingMaster),
   },
   {
     id: 'mid-boss-slayer',
@@ -71,6 +80,7 @@ export const TITLES: readonly TitleDef[] = [
     name: '복습 마스터',
     description: `클리어 후 복습 게임 누적 ${T.reviewMaster}판`,
     achieved: (s) => s.stats.reviewPlaysAfterClear >= T.reviewMaster,
+    progress: (s) => count(s.stats.reviewPlaysAfterClear, T.reviewMaster),
   },
 ];
 

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { loadSave, writeSave } from '../storage/save.ts';
+import { clearSave, loadSave, writeSave } from '../storage/save.ts';
 import { createStore, type KeyValueStore } from '../storage/storage.ts';
 import type { SaveData } from '../types.ts';
 
@@ -13,6 +13,8 @@ interface GameContextValue {
   update: (fn: (save: SaveData) => SaveData) => void;
   /** 처음 만들거나 백업에서 복원할 때 */
   replace: (save: SaveData) => void;
+  /** 설정 > 기록 초기화: 저장 데이터를 지우고 온보딩으로 */
+  reset: () => void;
   /** localStorage에 저장할 수 있는 환경인지 (시크릿 모드 등이면 false) */
   persistent: boolean;
   /** 마지막 저장이 실패했는지 (용량 초과 등) */
@@ -45,6 +47,13 @@ export function GameProvider({ children, store: injected }: { children: ReactNod
     [commit],
   );
 
+  const reset = useCallback(() => {
+    clearSave(store);
+    ref.current = null;
+    setSave(null);
+    setSaveFailed(false);
+  }, [store]);
+
   // 설정 > 글자 크기
   const fontSize = save?.settings.fontSize ?? 'normal';
   useEffect(() => {
@@ -52,8 +61,8 @@ export function GameProvider({ children, store: injected }: { children: ReactNod
   }, [fontSize]);
 
   const value = useMemo<GameContextValue>(
-    () => ({ save, loadStatus: initial.status, update, replace: commit, persistent: store.persistent, saveFailed }),
-    [save, initial.status, update, commit, store.persistent, saveFailed],
+    () => ({ save, loadStatus: initial.status, update, replace: commit, reset, persistent: store.persistent, saveFailed }),
+    [save, initial.status, update, commit, reset, store.persistent, saveFailed],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
