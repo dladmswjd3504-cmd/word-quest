@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "validate:words": "tsx scripts/validateWords.ts"
   },
   "dependencies": {
     "react": "^19.3.1",

@@ -1,0 +1,8 @@
+[
+  { "id": "wooden-shield", "bossDay": 5, "name": "나무 방패", "emoji": "🛡️" },
+  { "id": "star-badge", "bossDay": 10, "name": "별 배지", "emoji": "⭐" },
+  { "id": "wizard-hat", "bossDay": 15, "name": "마법사 모자", "emoji": "🎩" },
+  { "id": "silver-sword", "bossDay": 20, "name": "은빛 검", "emoji": "🗡️" },
+  { "id": "crystal-orb", "bossDay": 25, "name": "마법 수정구", "emoji": "🔮" },
+  { "id": "golden-trophy", "bossDay": 30, "name": "황금 트로피", "emoji": "🏆" }
+]
